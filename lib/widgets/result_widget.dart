@@ -47,6 +47,7 @@ class ResultWidget<T> extends StatefulWidget {
 class _ResultWidgetState<T> extends State<ResultWidget<T>> {
   final resultKey = GlobalKey();
   CoolDropdownItem<T>? selectedItem;
+  List<CoolDropdownItem<T>> dropdownList = [];
 
   bool _isError = false;
 
@@ -57,13 +58,32 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
 
   @override
   void initState() {
+    dropdownList = List.of(widget.dropdownList);
+
     if (widget.defaultItem != null) {
       _setSelectedItem(widget.defaultItem!);
     }
 
-    widget.controller
-        .setFunctions(onError, widget.onOpen, open, _setSelectedItem);
+    widget.controller.setFunctions(onError, widget.onOpen, open, _setSelectedItem);
     widget.controller.setResultOptions(widget.resultOptions);
+
+    // widget.controller.addListener(() {
+    //   if (widget.controller.isOpen) {
+    //     List<CoolDropdownItem<T>> list = [];
+
+    //     for (var element in widget.dropdownList) {
+    //       if (element.icon != null) {
+    //         var oldicon = element.icon as Icon;
+    //         var newicon = Icon(
+    //           oldicon.icon,
+    //           color: oldicon.color?.lighten(.5),
+    //         );
+
+    //         var item = CoolDropdownItem<T>(label: element.label, value: element.value, icon: )
+    //       }
+    //     }
+    //   }
+    // });
 
     super.initState();
   }
@@ -85,8 +105,7 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
           resultKey: resultKey,
           onChange: widget.onChange,
           dropdownList: widget.dropdownList,
-          getSelectedItem: (index) =>
-              _setSelectedItem(widget.dropdownList[index]),
+          getSelectedItem: (index) => _setSelectedItem(widget.dropdownList[index]),
           selectedItem: selectedItem,
           bodyContext: context,
         ));
@@ -119,9 +138,7 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
               Text(
                 selectedItem?.label ?? widget.resultOptions.placeholder ?? '',
                 overflow: widget.resultOptions.textOverflow,
-                style: selectedItem != null
-                    ? widget.resultOptions.textStyle
-                    : widget.resultOptions.placeholderTextStyle,
+                style: selectedItem != null ? widget.resultOptions.textStyle : widget.resultOptions.placeholderTextStyle,
               ),
             ),
           ),
@@ -130,11 +147,15 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
         if (widget.resultOptions.render == ResultRender.all ||
             widget.resultOptions.render == ResultRender.icon ||
             widget.resultOptions.render == ResultRender.reverse)
-          selectedItem?.icon ?? const SizedBox(),
+          widget.dropdownOptions.selectedIconColor != null
+              ? Icon(
+                  (selectedItem?.icon as Icon?)?.icon,
+                  color: widget.dropdownOptions.selectedIconColor,
+                )
+              : selectedItem?.icon ?? const SizedBox(),
 
         /// if you want to show icon + label in result widget
-      ].isReverse(
-          widget.dropdownItemOptions.render == DropdownItemRender.reverse);
+      ].isReverse(widget.dropdownItemOptions.render == DropdownItemRender.reverse);
 
   Widget _buildMarquee(Widget child) {
     return widget.resultOptions.isMarquee
@@ -149,19 +170,14 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
     return GestureDetector(
       onTap: () => open(),
       child: AnimatedBuilder(
-          animation: Listenable.merge([
-            widget.controller.controller,
-            widget.controller.errorController
-          ]),
+          animation: Listenable.merge([widget.controller.controller, widget.controller.errorController]),
           builder: (_, __) {
             return Container(
               key: resultKey,
               width: widget.resultOptions.width,
               height: widget.resultOptions.height,
               padding: widget.resultOptions.padding,
-              decoration: _isError
-                  ? widget.controller.errorDecoration.value
-                  : _decorationBoxTween.value,
+              decoration: _isError ? widget.controller.errorDecoration.value : _decorationBoxTween.value,
               child: Align(
                 alignment: widget.resultOptions.alignment,
                 child: widget.resultOptions.render != ResultRender.none
@@ -181,16 +197,14 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
                               },
                               child: Row(
                                 key: ValueKey(selectedItem?.label),
-                                mainAxisAlignment:
-                                    widget.resultOptions.mainAxisAlignment,
+                                mainAxisAlignment: widget.resultOptions.mainAxisAlignment,
                                 children: _buildResultItem(),
                               ),
                             ),
                           ),
                           SizedBox(width: widget.resultOptions.space),
                           if (widget.resultOptions.icon != null) _buildArrow(),
-                        ].isReverse(widget.resultOptions.render ==
-                            ResultRender.reverse),
+                        ].isReverse(widget.resultOptions.render == ResultRender.reverse),
                       )
                     : _buildArrow(),
               ),
