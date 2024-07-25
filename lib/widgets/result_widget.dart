@@ -147,12 +147,7 @@ class _ResultWidgetState<T> extends State<ResultWidget<T>> {
         if (widget.resultOptions.render == ResultRender.all ||
             widget.resultOptions.render == ResultRender.icon ||
             widget.resultOptions.render == ResultRender.reverse)
-          widget.dropdownOptions.selectedIconColor != null
-              ? Icon(
-                  (selectedItem?.icon as Icon?)?.icon,
-                  color: widget.dropdownOptions.selectedIconColor,
-                )
-              : selectedItem?.icon ?? const SizedBox(),
+          selectedItem?.icon ?? const SizedBox(),
 
         /// if you want to show icon + label in result widget
       ].isReverse(widget.dropdownItemOptions.render == DropdownItemRender.reverse);
